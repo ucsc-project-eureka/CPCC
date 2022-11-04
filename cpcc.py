@@ -104,15 +104,15 @@ NODE_MONTH_RATE = NODE_DAY_RATE * 30
 NODE_YEAR_RATE = NODE_MONTH_RATE * 12
 TRANS_DAY_RATE = (60 // ROUND_TIME) * 24
 DEPLOYMENT_YEARS = 5
-STORAGE = "Storage"
-TRANSACTIONS = "Transactions"
+STORAGE_GROUP = "Storage"
+TRANSACTION_GROUP = "Transactions"
+STORAGE_AMOUNT = 0
 
 months_arr = [i for i in range(1, DEPLOYMENT_YEARS * 12)]
 storage_used = []
-storage = 0
 for month in months_arr:
-    storage = storage + (NODE_MONTH_RATE * NODE_COUNT * CLUSTER_COUNT)/10**6
-    storage_used.append(storage)
+    STORAGE_AMOUNT = STORAGE_AMOUNT + (NODE_MONTH_RATE * NODE_COUNT * CLUSTER_COUNT)/10**6
+    storage_used.append(STORAGE_AMOUNT)
 df = pd.DataFrame(
   dict(
     x = months_arr,
@@ -127,9 +127,9 @@ def plot_storage(infopage, cloudprovider, stor_data, group):
     infopage.add_plot(stor_data[0], stor_data[1], idx = 1, name=cloudprovider.name, group=group)
     return stor_data[1]
 
-def plot_transaction(infopage, cloudprovider, trans_data, group, trans = TRANS_DAY_RATE):
+def plot_transaction(infopage, cloudprovider, trans_data, group, trans_rate = TRANS_DAY_RATE):
     """plots transaction cost of provider"""
-    trans_data = cloudprovider.transaction_cost_data(trans, trans_data)
+    trans_data = cloudprovider.transaction_cost_data(trans_rate, trans_data)
     infopage.add_plot(trans_data[0], trans_data[1], idx = 2, name=cloudprovider.name, group=group)
     return trans_data[1]
 
@@ -159,66 +159,66 @@ AZURE_ARCHIVE_TRANS = {"write": 0.13, "read": 7.15, "iter_write": 0.143,
     "iter_read": 7.15, "std" : 0.005}
 # S3
 aws = CloudProvider('simple s3', months_arr, storage_used)
-storage = plot_storage(info_page, aws, AWS_S3_STORAGE, STORAGE)
+storage = plot_storage(info_page, aws, AWS_S3_STORAGE, STORAGE_GROUP)
 
 # EBS
 aws = CloudProvider('ebs', months_arr, storage_used)
-storage = plot_storage(info_page, aws, tuple([AWS_EBS_STORAGE]), STORAGE)
+storage = plot_storage(info_page, aws, tuple([AWS_EBS_STORAGE]), STORAGE_GROUP)
 
 # EFS
 aws = CloudProvider('efs', months_arr, storage_used)
-storage = plot_storage(info_page, aws, tuple([AWS_EFS_STORAGE]), STORAGE)
+storage = plot_storage(info_page, aws, tuple([AWS_EFS_STORAGE]), STORAGE_GROUP)
 # S3 Glacier
 aws = CloudProvider('glacier storage', months_arr, storage_used)
-storage = plot_storage(info_page, aws, tuple([AWS_S3_GLACIER_STORAGE]), STORAGE)
+storage = plot_storage(info_page, aws, tuple([AWS_S3_GLACIER_STORAGE]), STORAGE_GROUP)
 
 # standard
 google = CloudProvider('gcloud standard', months_arr, storage_used)
-storage = plot_storage(info_page, google, tuple([GC_STD_STORAGE]), STORAGE)
-trans = plot_transaction(info_page, google, GC_STD_TRANS, TRANSACTIONS)
+storage = plot_storage(info_page, google, tuple([GC_STD_STORAGE]), STORAGE_GROUP)
+trans = plot_transaction(info_page, google, GC_STD_TRANS, TRANSACTION_GROUP)
 combined = np.add(np.array(storage), np.array(trans))
 info_page.add_plot(months_arr, combined, False, name=google.name, idx = 3)
 
 # nearline
 google = CloudProvider('gcloud nearline', months_arr, storage_used)
-storage = plot_storage(info_page, google, tuple([GC_NEAR_STORAGE]), STORAGE)
-trans = plot_transaction(info_page, google, GC_NEAR_TRANS, TRANSACTIONS)
+storage = plot_storage(info_page, google, tuple([GC_NEAR_STORAGE]), STORAGE_GROUP)
+trans = plot_transaction(info_page, google, GC_NEAR_TRANS, TRANSACTION_GROUP)
 combined = np.add(np.array(storage), np.array(trans))
 info_page.add_plot(months_arr, combined, False, name=google.name, idx = 3)
 
 # coldline
 google = CloudProvider('gcloud coldline', months_arr, storage_used)
-storage = plot_storage(info_page, google, tuple([GC_COLD_STORAGE]), STORAGE)
-trans = plot_transaction(info_page, google, GC_COLD_TRANS, TRANSACTIONS)
+storage = plot_storage(info_page, google, tuple([GC_COLD_STORAGE]), STORAGE_GROUP)
+trans = plot_transaction(info_page, google, GC_COLD_TRANS, TRANSACTION_GROUP)
 combined = np.add(np.array(storage), np.array(trans))
 info_page.add_plot(months_arr, combined, False, name=google.name, idx = 3)
 
 # archive
 google = CloudProvider('gcloud archive', months_arr, storage_used)
-storage = plot_storage(info_page, google, tuple([GC_COLD_STORAGE]), STORAGE)
-trans = plot_transaction(info_page, google, GC_COLD_TRANS, TRANSACTIONS)
+storage = plot_storage(info_page, google, tuple([GC_COLD_STORAGE]), STORAGE_GROUP)
+trans = plot_transaction(info_page, google, GC_COLD_TRANS, TRANSACTION_GROUP)
 combined = np.add(np.array(storage), np.array(trans))
 info_page.add_plot(months_arr, combined, False, name=google.name, idx = 3)
 
 
 # hot
 azure = CloudProvider('azure hot standard', months_arr, storage_used)
-storage = plot_storage(info_page, azure, AZURE_HOT_STORAGE, STORAGE)
-trans = plot_transaction(info_page, azure, AZURE_HOT_TRANS["write"], TRANSACTIONS)
+storage = plot_storage(info_page, azure, AZURE_HOT_STORAGE, STORAGE_GROUP)
+trans = plot_transaction(info_page, azure, AZURE_HOT_TRANS["write"], TRANSACTION_GROUP)
 combined = np.add(np.array(storage), np.array(trans))
 info_page.add_plot(months_arr, combined, False, name=azure.name, idx = 3)
 
 # cool
 azure = CloudProvider('azure cold standard', months_arr, storage_used)
-storage = plot_storage(info_page, azure, AZURE_COLD_STORAGE, STORAGE)
-trans = plot_transaction(info_page, azure, AZURE_COLD_TRANS["write"], TRANSACTIONS)
+storage = plot_storage(info_page, azure, AZURE_COLD_STORAGE, STORAGE_GROUP)
+trans = plot_transaction(info_page, azure, AZURE_COLD_TRANS["write"], TRANSACTION_GROUP)
 combined = np.add(np.array(storage), np.array(trans))
 info_page.add_plot(months_arr, combined, False, name=azure.name, idx = 3)
 
 # archive
 azure = CloudProvider('azure archive standard', months_arr, storage_used)
-storage = plot_storage(info_page, azure, AZURE_ARCHIVE_STORAGE, STORAGE)
-trans = plot_transaction(info_page, azure, AZURE_ARCHIVE_TRANS["write"], TRANSACTIONS)
+storage = plot_storage(info_page, azure, AZURE_ARCHIVE_STORAGE, STORAGE_GROUP)
+trans = plot_transaction(info_page, azure, AZURE_ARCHIVE_TRANS["write"], TRANSACTION_GROUP)
 combined = np.add(np.array(storage), np.array(trans))
 info_page.add_plot(months_arr, combined, False, name=azure.name, idx = 3)
 info_page.show()
