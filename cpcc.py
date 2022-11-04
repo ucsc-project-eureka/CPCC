@@ -9,6 +9,9 @@ from plotly.subplots import make_subplots
 
 __author__ = "Tyler Morton"
 __copyright__ = "Copyright 2022, Santa Cruz"
+
+__license__ = "MIT"
+__version__ = ' "0.0.0'
 __email__ = "tbmorton@ucsc.edu"
 __status__ = "Development"
 
@@ -23,7 +26,8 @@ class GraphPage():
                 "Transaction costs (writes)", "Combined")
         )
         self.count = 0
-    def add_plot(self, x, y, layer=False, name = "trace", idx = None, group = "group", dash = 'solid'):
+    def add_plot(self, x_axis, y_axis, layer = False, name = "trace", idx = None,
+        group = "group", dash = 'solid'):
         """Adds a generated line plot to GraphPage figure"""
         if layer:
             self.count = self.count - 1
@@ -32,7 +36,7 @@ class GraphPage():
         row = idx + 1
         self.fig.add_trace(
             go.Scatter(
-                x=x, y=y, name=name,
+                x=x_axis, y=y_axis, name=name,
                 legendgroup=group,
                 legendgrouptitle_text=f"{group}",
                 line = dict(dash=dash)
@@ -78,12 +82,12 @@ class CloudProvider():
             self.cost.append(acc_charge)
         return (self.lifetime, self.cost)
 
-    def transaction_cost_data(self, trans, pricing):
+    def transaction_cost_data(self, trans_rate, pricing):
         """Calculates cost of specified cloud system based off transactions"""
         acc_pricing = 0
         cost = []
         for _ in self.lifetime:
-            acc_pricing = acc_pricing + pricing * (trans * 30) / 10000
+            acc_pricing = acc_pricing + pricing * (trans_rate * 30) / 10000
             cost.append(acc_pricing)
         return (self.lifetime, cost)
     def total_cost_plot(self):
@@ -92,7 +96,7 @@ class CloudProvider():
 
 # Constants
 ROUND_TIME = 5 # in minutes
-NODE_DATA_RATE = 0.288
+NODE_DATA_RATE = 0.288 # KB a minute
 NODE_COUNT = 15 # avg nodes in a cluster
 CLUSTER_COUNT = 3 # avg number of clusters in Eureka
 NODE_DAY_RATE = NODE_DATA_RATE * 60 * 24
@@ -100,6 +104,8 @@ NODE_MONTH_RATE = NODE_DAY_RATE * 30
 NODE_YEAR_RATE = NODE_MONTH_RATE * 12
 TRANS_DAY_RATE = (60 // ROUND_TIME) * 24
 DEPLOYMENT_YEARS = 5
+STORAGE = "Storage"
+TRANSACTIONS = "Transactions"
 
 months_arr = [i for i in range(1, DEPLOYMENT_YEARS * 12)]
 storage_used = []
@@ -115,8 +121,6 @@ df = pd.DataFrame(
 )
 info_page = GraphPage(4)
 info_page.add_plot(months_arr, storage_used)
-STORAGE = "Storage"
-TRANSACTIONS = "Transactions"
 def plot_storage(infopage, cloudprovider, stor_data, group):
     """plots storage cost of provider"""
     stor_data = cloudprovider.storage_cost_data(stor_data)
