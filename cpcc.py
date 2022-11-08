@@ -176,6 +176,7 @@ storage = plot_storage(info_page, aws, tuple([AWS_S3_GLACIER_STORAGE]), STORAGE_
 google = CloudProvider('gcloud standard', months_arr, storage_used)
 storage = plot_storage(info_page, google, tuple([GC_STD_STORAGE]), STORAGE_GROUP)
 trans = plot_transaction(info_page, google, GC_STD_TRANS, TRANSACTION_GROUP)
+
 combined = np.add(np.array(storage), np.array(trans))
 info_page.add_plot(months_arr, combined, False, name=google.name, idx = 3)
 
